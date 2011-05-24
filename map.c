@@ -57,9 +57,12 @@ int loadMap(char **file){
 	char *buffer;
 	size_t result;
 
-	pFile = fopen ( "maps/brazil58.tsp" , "rb" );
-	if (pFile==NULL)
+	if((pFile = fopen("maps/brazil58.tsp", "rb")) == NULL &&
+		(pFile = fopen("../maps/brazil58.tsp", "rb")) == NULL &&
+		(pFile = fopen("brazil58.tsp", "rb")) == NULL){
+
 		return TSPS_RC_FAILURE;
+	}
 
 	// obtain file size:
 	fseek (pFile , 0 , SEEK_END);

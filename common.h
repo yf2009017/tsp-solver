@@ -19,6 +19,7 @@ typedef struct{
 	int numGenerations;
 	int numElitism;
 	int mutationSize;
+	int maxBreeding;
 } tspsConfig_t;
 
 int readConfig(tspsConfig_t *config, int argc, char **argv);

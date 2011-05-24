@@ -10,9 +10,11 @@
 
 #include "common.h"
 #include "map.h"
+/*--------------------------------------*/
 
 typedef struct{
 	int fitness;
+	float breedChance;
 	short unsigned int chromossome[NUM_NODES];
 } tspsIndividual_t;
 
@@ -20,6 +22,20 @@ typedef struct{
 	int numIndividuals;
 	tspsIndividual_t *individual;
 } tspsPopulation_t;
+/*--------------------------------------*/
+
+typedef struct{
+	tspsIndividual_t parent1;
+	tspsIndividual_t parent2;
+	tspsIndividual_t son1;
+	tspsIndividual_t son2;
+} tspsBreeders_t;
+
+typedef struct{
+	int numBreeders;
+	tspsBreeders_t *breeders;
+} tspsBreedersList_t;
+/*--------------------------------------*/
 
 typedef struct{
 	int edges[4];
@@ -28,7 +44,7 @@ typedef struct{
 typedef struct{
 	tspsNodeEdges_t node[NUM_NODES];
 } tspsEdgeTable_t;
-
+/*--------------------------------------*/
 
 int generateRandomPopulation(tspsPopulation_t *population, tspsMap_t *map, tspsConfig_t *config);
 int generateRandomChromossome(tspsIndividual_t *ind);
@@ -40,5 +56,7 @@ int edgeCrossover(tspsIndividual_t *son1, tspsIndividual_t *son2, tspsIndividual
 int chooseNodeFromEdges(tspsEdgeTable_t *edgeTable, tspsNodeEdges_t *nodeEdges, int *isAlreadyUsed);
 int mutatePopulation(tspsPopulation_t *pop, tspsMap_t *map, tspsConfig_t *config);
 void printIndividual(tspsIndividual_t *ind, unsigned long int numGenerations);
+void calculateBreedChance(tspsPopulation_t *pop);
+int selectBreeders(tspsBreedersList_t *brl, tspsPopulation_t *pop, int maxBreeding);
 
 #endif /* POPULATION_H_ */
