@@ -1,4 +1,4 @@
-./tsp_solver 1000 0.1 10000 10 1 200
+./tsp_solver 100000 0.1 10000 100 1 2000
 
 *** Best Individual
 	 --> generat = [5554]
