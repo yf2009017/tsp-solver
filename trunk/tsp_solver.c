@@ -28,7 +28,7 @@ int main(int argc, char **argv){
 	srand ( time(NULL) );
 
 	if(parseMap(&map) != TSPS_RC_SUCCESS){
-		printf("Error! Unable to read map 'maps/brazil58.tsp\n'!");
+		printf("Error! Unable to read map 'maps/brazil58.tsp'!\n");
 		return TSPS_RC_FAILURE;
 	}
 
@@ -72,6 +72,11 @@ int main(int argc, char **argv){
 
 	}
 
+	printf("* Generation [%lu]...\n", numGenerations);
+
+	printf("* Max number of generations reached! Ending... \n");
+
+	free(population.individual);
 	return TSPS_RC_SUCCESS;
 
 }
