@@ -9,6 +9,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include "mpi.h"
 #include "common.h"
 #include "map.h"
 #include "population.h"
@@ -19,6 +20,12 @@ int main(int argc, char **argv){
 	tspsPopulation_t population;
 	tspsIndividual_t mostFit;
 	unsigned long int numGenerations = 0;
+	int mpiNumProcs = 0, mpiId = 0;
+
+	//starting MPI directives
+    MPI_Init(NULL,NULL);
+    MPI_Comm_size(MPI_COMM_WORLD,&mpiNumProcs);
+    MPI_Comm_rank(MPI_COMM_WORLD,&mpiId);
 
 	if(readConfig(&config, argc, argv) != TSPS_RC_SUCCESS){
 		return TSPS_RC_FAILURE;
@@ -49,7 +56,7 @@ int main(int argc, char **argv){
 
 		if(population.individual[0].fitness < mostFit.fitness){
 			memcpy(&mostFit, &population.individual[0], sizeof(mostFit));
-			printIndividual(&mostFit, numGenerations);
+			printIndividual(&mostFit, numGenerations, mpiId);
 		}
 
 		if(crossoverPopulation(&population, &map, &config) != TSPS_RC_SUCCESS){
@@ -73,10 +80,10 @@ int main(int argc, char **argv){
 	}
 
 	printf("* Generation [%lu]...\n", numGenerations);
-
 	printf("* Max number of generations reached! Ending... \n");
 
 	free(population.individual);
+	MPI_Finalize();
 	return TSPS_RC_SUCCESS;
 
 }

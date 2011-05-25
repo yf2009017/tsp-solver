@@ -55,7 +55,7 @@ int crossoverPopulation(tspsPopulation_t *pop, tspsMap_t *map, tspsConfig_t *con
 int edgeCrossover(tspsIndividual_t *son1, tspsIndividual_t *son2, tspsIndividual_t *par1, tspsIndividual_t *par2);
 int chooseNodeFromEdges(tspsEdgeTable_t *edgeTable, tspsNodeEdges_t *nodeEdges, int *isAlreadyUsed);
 int mutatePopulation(tspsPopulation_t *pop, tspsMap_t *map, tspsConfig_t *config);
-void printIndividual(tspsIndividual_t *ind, unsigned long int numGenerations);
+void printIndividual(tspsIndividual_t *ind, unsigned long int numGenerations, int mpiId);
 void calculateBreedChance(tspsPopulation_t *pop);
 int selectBreeders(tspsBreedersList_t *brl, tspsPopulation_t *pop, int maxBreeding);
 

@@ -4,6 +4,7 @@
  *  Created on: May 21, 2011
  *      Author: helder
  */
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -376,11 +377,17 @@ int mutatePopulation(tspsPopulation_t *pop, tspsMap_t *map, tspsConfig_t *config
 	return TSPS_RC_SUCCESS;
 }
 
-void printIndividual(tspsIndividual_t *ind, unsigned long int numGenerations){
+void printIndividual(tspsIndividual_t *ind, unsigned long int numGenerations, int mpiId){
 	FILE *file = NULL;
+	char *filename;
 	int i;
 
-	if((file = fopen("tsps.log", "a")) == NULL){
+	if(asprintf(&filename, "tsps_%d.log", mpiId) < 0){
+		return;
+	}
+
+	if((file = fopen(filename, "a")) == NULL){
+		free(filename);
 		return;
 	}
 
@@ -398,6 +405,7 @@ void printIndividual(tspsIndividual_t *ind, unsigned long int numGenerations){
 	fprintf(file, "------------------------------------------------------------------\n");
 
 	fclose(file);
+	free(filename);
 }
 
 void calculateBreedChance(tspsPopulation_t *pop){
