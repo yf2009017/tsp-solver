@@ -32,7 +32,7 @@ int main(int argc, char **argv){
 	}
 
 	// initialize random seed:
-	srand ( time(NULL) );
+	srand ( time(NULL)*mpiId );
 
 	if(parseMap(&map) != TSPS_RC_SUCCESS){
 		printf("Error! Unable to read map 'maps/brazil58.tsp'!\n");
