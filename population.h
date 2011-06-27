@@ -10,6 +10,9 @@
 
 #include "common.h"
 #include "map.h"
+
+#define MPI_MIGRATION_TAG 1
+
 /*--------------------------------------*/
 
 typedef struct{
@@ -58,5 +61,7 @@ int mutatePopulation(tspsPopulation_t *pop, tspsMap_t *map, tspsConfig_t *config
 void printIndividual(tspsIndividual_t *ind, unsigned long int numGenerations, int mpiId);
 void calculateBreedChance(tspsPopulation_t *pop);
 int selectBreeders(tspsBreedersList_t *brl, tspsPopulation_t *pop, int maxBreeding);
+int migrateIndividual(tspsPopulation_t *population, tspsConfig_t *config, int mpiId, int mpiNumProcs);
+void printMigrants(tspsIndividual_t *imigrant, tspsIndividual_t *emigrant, int mpiId);
 
 #endif /* POPULATION_H_ */

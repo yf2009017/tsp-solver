@@ -67,9 +67,15 @@ int main(int argc, char **argv){
 			return TSPS_RC_FAILURE;
 		}
 
-		if(config.numGenerations > 0){
-			if(numGenerations == config.numGenerations){
-				break;
+		//end execution
+		if(config.numGenerations > 0 && numGenerations == config.numGenerations){
+			break;
+		}
+
+		//migrate
+		if(mpiNumProcs > 1 && numGenerations % 100 == 0){
+			if(migrateIndividual(&population, &config, mpiId, mpiNumProcs) != TSPS_RC_SUCCESS){
+				return TSPS_RC_FAILURE;
 			}
 		}
 
