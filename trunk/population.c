@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include "mpi.h"
 #include "common.h"
 #include "population.h"
 
@@ -487,4 +488,76 @@ int selectBreeders(tspsBreedersList_t *brl, tspsPopulation_t *pop, int maxBreedi
 	free(alreadyBreed);
 
 	return TSPS_RC_SUCCESS;
+}
+
+/* choose an individual to migrate between other populations through MPI*/
+int migrateIndividual(tspsPopulation_t *population, tspsConfig_t *config, int mpiId, int mpiNumProcs){
+	tspsIndividual_t emigrant, imigrant;
+	int i;
+	MPI_Status status;
+
+	//choose randomly for now the individual to migrate
+	i = rand() % population->numIndividuals;
+	memcpy(&emigrant, &population->individual[i], sizeof(tspsIndividual_t));
+
+	//migrate the chosen individual
+	//printf("%s():%d - ID = [%d], Procs = [%d]\n", __FUNCTION__, __LINE__, mpiId, mpiNumProcs);
+	MPI_Send(&emigrant, sizeof(tspsIndividual_t), MPI_CHAR, (mpiId+1 < mpiNumProcs? mpiId + 1 : 0), MPI_MIGRATION_TAG, MPI_COMM_WORLD);
+
+	//printf("%s():%d\n", __FUNCTION__, __LINE__);
+
+	//receive the imigrant from other popualtion
+	memset(&imigrant, 0, sizeof(tspsIndividual_t));
+	MPI_Recv(&imigrant, sizeof(tspsIndividual_t), MPI_CHAR, (mpiId > 0? mpiId-1 : mpiNumProcs-1), MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status);
+
+	//printf("%s():%d\n", __FUNCTION__, __LINE__);
+
+	//set the individual in our population
+	memcpy(&population->individual[i], &imigrant, sizeof(tspsIndividual_t));
+
+	printMigrants(&imigrant, &emigrant, mpiId);
+
+	return TSPS_RC_SUCCESS;
+}
+
+void printMigrants(tspsIndividual_t *imigrant, tspsIndividual_t *emigrant, int mpiId){
+	FILE *file = NULL;
+	char *filename;
+	int i;
+
+	if(asprintf(&filename, "tsps_%d.log", mpiId) < 0){
+		return;
+	}
+
+	if((file = fopen(filename, "a")) == NULL){
+		free(filename);
+		return;
+	}
+
+	fprintf(file, "*** Migration Event!!!\n");
+	fprintf(file, "*** Imigrant\n");
+	fprintf(file, "\t --> fitness = [%d]\n", imigrant->fitness);
+	fprintf(file, "\t --> chromos = ");
+
+	for(i=0; i<NUM_NODES; i++){
+		fprintf(file, "[%d]", imigrant->chromossome[i]);
+		if((i+1) % 10 == 0)
+			fprintf(file, "\n\t\t\t");
+	}
+
+	fprintf(file, "\n");
+	fprintf(file, "*** Emigrant\n");
+	fprintf(file, "\t --> fitness = [%d]\n", emigrant->fitness);
+	fprintf(file, "\t --> chromos = ");
+
+	for(i=0; i<NUM_NODES; i++){
+		fprintf(file, "[%d]", emigrant->chromossome[i]);
+		if((i+1) % 10 == 0)
+			fprintf(file, "\n\t\t\t");
+	}
+	fprintf(file, "\n");
+	fprintf(file, "------------------------------------------------------------------\n");
+
+	fclose(file);
+	free(filename);
 }
