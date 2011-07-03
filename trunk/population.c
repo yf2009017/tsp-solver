@@ -14,6 +14,8 @@
 #include "common.h"
 #include "population.h"
 
+tspsImigrant_t imigrant;
+
 int generateRandomPopulation(tspsPopulation_t *pop, tspsMap_t *map, tspsConfig_t *config){
 	int i;
 
@@ -93,8 +95,17 @@ int calculateFitness(tspsIndividual_t *ind, tspsMap_t *map){
 }
 
 /* sort population by fitness (greatest to lowest)*/
-int sortPopulation(tspsPopulation_t *pop){
+int sortPopulation(tspsPopulation_t *pop, int mpiId){
+	int isCompleted = 0;
+	MPI_Status status;
 
+	if(imigrant.popIndex != -1){
+		MPI_Test(&imigrant.req, &isCompleted, &status);
+		if(isCompleted){
+			memcpy(&pop->individual[imigrant.popIndex], &imigrant.individual, sizeof(tspsIndividual_t));
+			imigrant.popIndex = -1;
+		}
+	}
 	qsort(pop->individual, pop->numIndividuals, sizeof(tspsIndividual_t), comparePopulation);
 
 	return TSPS_RC_SUCCESS;
@@ -492,7 +503,7 @@ int selectBreeders(tspsBreedersList_t *brl, tspsPopulation_t *pop, int maxBreedi
 
 /* choose an individual to migrate between other populations through MPI*/
 int migrateIndividual(tspsPopulation_t *population, tspsConfig_t *config, int mpiId, int mpiNumProcs){
-	tspsIndividual_t emigrant, imigrant;
+	tspsIndividual_t emigrant;
 	int i;
 	MPI_Status status;
 
@@ -501,21 +512,19 @@ int migrateIndividual(tspsPopulation_t *population, tspsConfig_t *config, int mp
 	memcpy(&emigrant, &population->individual[i], sizeof(tspsIndividual_t));
 
 	//migrate the chosen individual
-	//printf("%s():%d - ID = [%d], Procs = [%d]\n", __FUNCTION__, __LINE__, mpiId, mpiNumProcs);
 	MPI_Send(&emigrant, sizeof(tspsIndividual_t), MPI_CHAR, (mpiId+1 < mpiNumProcs? mpiId + 1 : 0), MPI_MIGRATION_TAG, MPI_COMM_WORLD);
 
-	//printf("%s():%d\n", __FUNCTION__, __LINE__);
+	//wait to receive the imigrant from other population that was sent in past generations
+	if(imigrant.popIndex != -1){
+		MPI_Wait(&imigrant.req, &status);
+		memcpy(&population->individual[imigrant.popIndex], &imigrant.individual, sizeof(tspsIndividual_t));
+	}
 
-	//receive the imigrant from other popualtion
-	memset(&imigrant, 0, sizeof(tspsIndividual_t));
-	MPI_Recv(&imigrant, sizeof(tspsIndividual_t), MPI_CHAR, (mpiId > 0? mpiId-1 : mpiNumProcs-1), MPI_MIGRATION_TAG, MPI_COMM_WORLD, &status);
-
-	//printf("%s():%d\n", __FUNCTION__, __LINE__);
-
-	//set the individual in our population
-	memcpy(&population->individual[i], &imigrant, sizeof(tspsIndividual_t));
-
-	printMigrants(&imigrant, &emigrant, mpiId);
+	//receive the new imigrant from the other population
+	memset(&imigrant, 0, sizeof(tspsImigrant_t));
+	imigrant.popIndex = i;
+	MPI_Irecv(&imigrant.individual, sizeof(tspsIndividual_t), MPI_CHAR, (mpiId > 0? mpiId-1 : mpiNumProcs-1),
+			MPI_MIGRATION_TAG, MPI_COMM_WORLD, &imigrant.req);
 
 	return TSPS_RC_SUCCESS;
 }

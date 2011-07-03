@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "map.h"
+#include "mpi.h"
 
 #define MPI_MIGRATION_TAG 1
 
@@ -25,6 +26,12 @@ typedef struct{
 	int numIndividuals;
 	tspsIndividual_t *individual;
 } tspsPopulation_t;
+
+typedef struct{
+	int popIndex;
+	MPI_Request req;
+	tspsIndividual_t individual;
+} tspsImigrant_t;
 /*--------------------------------------*/
 
 typedef struct{
@@ -52,7 +59,7 @@ typedef struct{
 int generateRandomPopulation(tspsPopulation_t *population, tspsMap_t *map, tspsConfig_t *config);
 int generateRandomChromossome(tspsIndividual_t *ind);
 int calculateFitness(tspsIndividual_t *ind, tspsMap_t *map);
-int sortPopulation(tspsPopulation_t *pop);
+int sortPopulation(tspsPopulation_t *pop, int mpiId);
 int comparePopulation(const void * a, const void * b);
 int crossoverPopulation(tspsPopulation_t *pop, tspsMap_t *map, tspsConfig_t *config);
 int edgeCrossover(tspsIndividual_t *son1, tspsIndividual_t *son2, tspsIndividual_t *par1, tspsIndividual_t *par2);
