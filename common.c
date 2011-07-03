@@ -30,13 +30,13 @@ int readConfig(tspsConfig_t *config, int argc, char **argv){
 
 	mutationRate = atof(argv[2]);
 	if(mutationRate < 0 || mutationRate > 1){
-		printf("Invalid mutation rate (0 - 1)!\n Usage: ./tsp_solver <population size> <mutation rate> <number generations> <elitism number> <mutation size> <max breeding>\n");
+		printf("Invalid mutation rate (0..1)!\n Usage: ./tsp_solver <population size> <mutation rate> <number generations> <elitism number> <mutation size> <max breeding>\n");
 		return TSPS_RC_FAILURE;
 	}
 
 	numGenerations = atoi(argv[3]);
-	if(numGenerations < 0){
-		printf("Invalid number of generations (>= 0)!\n Usage: ./tsp_solver <population size> <mutation rate> <number generations> <elitism number> <mutation size> <max breeding>\n");
+	if(numGenerations < 100 && numGenerations != 0){
+		printf("Invalid number of generations (>= 100 | 0 if infinite)!\n Usage: ./tsp_solver <population size> <mutation rate> <number generations> <elitism number> <mutation size> <max breeding>\n");
 		return TSPS_RC_FAILURE;
 	}
 

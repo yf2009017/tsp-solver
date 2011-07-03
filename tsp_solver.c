@@ -14,6 +14,8 @@
 #include "map.h"
 #include "population.h"
 
+extern tspsImigrant_t imigrant;
+
 int main(int argc, char **argv){
 	tspsMap_t map;
 	tspsConfig_t config;
@@ -46,11 +48,14 @@ int main(int argc, char **argv){
 
 	mostFit.fitness = 999999;
 
+	memset(&imigrant, 0, sizeof(tspsImigrant_t));
+	imigrant.req = MPI_REQUEST_NULL;
+	imigrant.popIndex = -1;
 	while(1){
 
 		numGenerations++;
 
-		if(sortPopulation(&population) != TSPS_RC_SUCCESS){
+		if(sortPopulation(&population, mpiId) != TSPS_RC_SUCCESS){
 			return TSPS_RC_FAILURE;
 		}
 
@@ -80,13 +85,13 @@ int main(int argc, char **argv){
 		}
 
 		if(numGenerations % 1000 == 0){
-			printf("* Generation [%lu]...\n", numGenerations);
+			printf("* (Id%d) Generation [%lu]...\n", mpiId, numGenerations);
 		}
 
 	}
 
-	printf("* Generation [%lu]...\n", numGenerations);
-	printf("* Max number of generations reached! Ending... \n");
+	printf("* (Id%d) Generation [%lu]...\n", mpiId, numGenerations);
+	printf("* (Id%d) Max number of generations reached! Ending... \n", mpiId);
 
 	free(population.individual);
 	MPI_Finalize();
